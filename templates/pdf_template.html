@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Xác nhận đặt phòng</title>
+    <style>
+      body {
+        font-family: Times New Roman, sans-serif;
+      }
+      .container {
+        width: 70%;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      table,
+      th,
+      td {
+        border: 1px solid black;
+      }
+      th,
+      td {
+        padding: 10px;
+        text-align: left;
+      }
+      h1 {
+        text-align: center;
+      }
+      ul {
+        font-style: italic;
+      }
+      .policy-table th,
+      .policy-table td {
+        text-align: center;
+        font-style: italic;
+      }
+      th {
+        text-align: center;
+        width: 40%;
+      }
+      .logo {
+        text-align: center;
+        margin-bottom: 20px;
+        }
+        thead tr th {
+            background-color: lightgrey;
+        }
+        td {
+            line-height: 1.5;
+        }
+        th, td {
+            vertical-align: top;
+        }
+        .single-line {
+            white-space: normal;
+        }
+        .multiline-field {
+            white-space: pre-line;
+            word-wrap: break-word;
+        }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+        <div class="logo">
+            <img src="https://raw.githubusercontent.com/angelwshotgun/DataStore/refs/heads/main/dahlialogo.png" alt="Dahlia Hotel Logo" width="150">
+        </div>
+      <h2 style="text-align: center">XÁC NHẬN ĐẶT PHÒNG</h2>
+      <table>
+        <tr>
+          <th>Tên khách</th>
+          <td class="name-field single-line" style="font-weight: bold;">{{ name }}</td>
+        </tr>
+        <tr>
+          <th>Số khách</th>
+          <td class="single-line">{{ guests }}</td>
+        </tr>
+        <tr>
+          <th>Ngày ở</th>
+          <td class="multiline-field">{{ stay_dates }}</td>
+        </tr>
+        <tr>
+          <th>Loại phòng</th>
+          <td class="room-type-field single-line">{{ room_info }}</td>
+        </tr>
+        <tr>
+          <th>Giá phòng</th>
+          <td class="multiline-field">{{ grand_total }}</td>
+        </tr>
+        <tr>
+          <th>Dịch vụ bao gồm</th>
+          <td class="multiline-field">{{ services_included }}</td>
+        </tr>
+        <tr>
+          <th>Dịch vụ khác</th>
+          <td class="multiline-field">{{ other_services }}</td>
+        </tr>
+        <tr>
+          <th>Thanh toán</th>
+          <td class="multiline-field">{{ payment_note }}</td>
+        </tr>
+        <tr>
+          <th>Thông tin thanh toán</th>
+          <td class="multiline-field">{{ payment_info }}</td>
+        </tr>
+      </table>
+
+      <ul>
+        <li>Giờ check-in: 14h, giờ check-out: 12h (trưa)</li>
+        <li>Giá phòng chưa bao gồm các dịch vụ không được đề cập khác.</li>
+        <li>Chính sách hoàn, hủy phòng, xe và các dịch vụ:</li>
+      </ul>
+      <table class="policy-table">
+        <thead>
+          <tr>
+            <th>Trước ngày check-in</th>
+            <th>Chính sách đổi</th>
+            <th>Chính sách hủy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>30 ngày</td>
+            <td>Miễn phí</td>
+            <td>Miễn phí</td>
+          </tr>
+          <tr>
+            <td>14 ngày</td>
+            <td>Miễn phí</td>
+            <td>Phí hủy 30%</td>
+          </tr>
+          <tr>
+            <td>07 ngày</td>
+            <td>Phí đổi 30%</td>
+            <td>Phí hủy 50%</td>
+          </tr>
+          <tr>
+            <td>03 ngày</td>
+            <td>Phí đổi 70%</td>
+            <td>Phí hủy 100%</td>
+          </tr>
+          <tr>
+            <td colspan="3">Các đặt phòng đổi lịch có giá trị trong 06 tháng, số đã đặt thanh toán
+                được bảo lưu và giá phòng, dịch vụ có thể thay đổi tùy theo thời điểm
+                đặt lịch mới.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

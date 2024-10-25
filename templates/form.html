@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Đặt Phòng</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #f5f5f5;
+        }
+
+        form {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .room-group {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .room-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .room-header h3 {
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+
+        .remove-room {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .remove-room:hover {
+            background-color: #c82333;
+        }
+
+        #add-room-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background-color 0.2s;
+        }
+
+        #add-room-btn:hover {
+            background-color: #218838;
+        }
+
+        .total-price {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+        }
+
+        .date-range {
+            width: 100%;
+        }
+
+        .buttons-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        input[type="submit"],
+        .preview-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        input[type="submit"] {
+            background-color: #007bff;
+            color: white;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        .preview-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .preview-btn:hover {
+            background-color: #5a6268;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+    </style>
+    <script>
+        $(function() {
+            function initDateRangePicker(element) {
+                $(element).daterangepicker({
+                    locale: {
+                        format: 'DD/MM/YYYY'
+                    }
+                }, function(start, end, label) {
+                    var daysStayed = end.diff(start, 'days');
+                    var roomGroup = $(element).closest('.room-group');
+                    roomGroup.find('.stay_days').val(daysStayed + ' đêm');
+                    setTimeout(updateStayDates, 100);
+                    calculateTotalDays();
+                    updateTotalPrice();
+                });
+            }
+
+            function formatCurrency(number) {
+                return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' })
+                    .format(number)
+                    .replace('₫', 'VNĐ');
+            }
+
+            function calculateRoomPrice(roomGroup) {
+                var quantity = parseInt($(roomGroup).find('input[name="room_quantities[]"]').val()) || 0;
+                var price = parseInt($(roomGroup).find('input[name="room_prices[]"]').val().replace(/[^0-9]/g, '')) || 0;
+                var stayDaysText = $(roomGroup).find('.stay_days').val();
+                var nights = parseInt(stayDaysText) || 0;
+                
+                var total = quantity * price * nights;
+                $(roomGroup).find('.total-price').text('Tổng tiền: ' + formatCurrency(total));
+                return total;
+            }
+
+            function updateTotalPrice() {
+                var grandTotal = 0;
+                var allPrices = [];
+                
+                $('.room-group').each(function() {
+                    var price = parseInt($(this).find('input[name="room_prices[]"]').val().replace(/[^0-9]/g, '')) || 0;
+                    allPrices.push(price);
+                    grandTotal += calculateRoomPrice(this);
+                });
+                
+                $('#grand_total').val(formatCurrency(grandTotal));
+                $('input[name="room_prices"]').val(allPrices.join(','));
+            }
+
+            function updateStayDates() {
+                var stayDates = [];
+                $('.room-group').each(function() {
+                    var dateValue = $(this).find('.date-range').val();
+                    if (dateValue && dateValue.trim() !== '') {
+                        stayDates.push(dateValue);
+                    }
+                });
+                $('input[name="stay_dates"]').val(stayDates.join('\n'));
+            }
+
+            function calculateTotalDays() {
+                var totalDays = 0;
+                $('.stay_days').each(function() {
+                    var daysText = $(this).val();
+                    var days = parseInt(daysText) || 0;
+                    totalDays += days;
+                });
+                $('#total_days').val(totalDays + ' đêm');
+            }
+
+            function updateRoomInfo() {
+                var roomInfo = [];
+                $('.room-group').each(function() {
+                    var roomType = $(this).find('select[name="room_types[]"]').val();
+                    var quantity = $(this).find('input[name="room_quantities[]"]').val();
+                    if (roomType && quantity) {
+                        roomInfo.push(`${quantity} x ${roomType}`);
+                    }
+                });
+                $('#room_info').val(roomInfo.join('\n'));
+            }
+
+            $('#add-room-btn').click(function() {
+                var roomCount = $('.room-group').length + 1;
+                var newRoomHtml = `
+                    <div class="room-group">
+                        <div class="room-header">
+                            <h3>Phòng ${roomCount}</h3>
+                            <button type="button" class="remove-room">Xóa phòng</button>
+                        </div>
+                        <div class="form-group">
+                            <label>Loại phòng:</label>
+                            <select name="room_types[]" required>
+                                <option value="">Chọn loại phòng</option>
+                                <option value="Classic Double Room">Classic Double Room (CLD)</option>
+                                <option value="Classic Premium Room">Classic Premium Room (CLP)</option>
+                                <option value="Studio Room">Studio Room (STU)</option>
+                                <option value="Triple Room">Triple Room (TRIP)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Số lượng phòng:</label>
+                            <input type="number" name="room_quantities[]" min="1" value="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Giá phòng (VNĐ/đêm):</label>
+                            <input type="text" name="room_prices[]" class="price-input" required 
+                                   placeholder="Nhập giá phòng" 
+                                   oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/\\B(?=(\\d{3})+(?!\\d))/g, '.')">
+                        </div>
+                        <div class="form-group">
+                            <label>Ngày ở:</label>
+                            <input type="text" name="stay_dates[]" class="date-range" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Số ngày lưu trú:</label>
+                            <input type="text" class="stay_days" readonly>
+                        </div>
+                        <div class="total-price">Tổng tiền: 0 VNĐ</div>
+                    </div>
+                `;
+                $('#rooms-container').append(newRoomHtml);
+                initDateRangePicker($('#rooms-container .room-group:last-child .date-range'));
+                updateTotalPrice();
+            });
+
+            $(document).on('input', 'input[name="room_quantities[]"], input[name="room_prices[]"]', function() {
+                updateRoomInfo();
+                updateTotalPrice();
+            });
+
+            $(document).on('change', 'select[name="room_types[]"]', function() {
+                updateRoomInfo();
+            });
+
+            $(document).on('click', '.remove-room', function() {
+                $(this).closest('.room-group').remove();
+                
+                $('.room-group').each(function(index) {
+                    $(this).find('h3').text('Phòng ' + (index + 1));
+                });
+                
+                updateRoomInfo();
+                updateTotalPrice();
+                calculateTotalDays();
+            });
+
+            $('form').on('submit', function(e) {
+                updateStayDates();
+                updateRoomInfo();
+                updateTotalPrice();
+            });
+
+            $('.preview-btn').click(function(e) {
+                e.preventDefault();
+                updateStayDates();
+                updateRoomInfo();
+                updateTotalPrice();
+                $('#preview-form').submit();
+            });
+
+            initDateRangePicker($('.room-group:first .date-range'));
+        });
+    </script>
+</head>
+<body>
+    <form action="/create_pdf" method="POST">
+        <div class="form-group">
+            <label>Tên khách:</label>
+            <input type="text" name="name" required>
+        </div>
+
+        <div class="form-group">
+            <label>Số khách:</label>
+            <input type="text" name="guests" required>
+        </div>
+
+        <div id="rooms-container">
+            <div class="room-group">
+                <div class="room-header">
+                    <h3>Phòng 1</h3>
+                    <button type="button" class="remove-room">Xóa phòng</button>
+                </div>
+                <div class="form-group">
+                    <label>Loại phòng:</label>
+                    <select name="room_types[]" required>
+                        <option value="">Chọn loại phòng</option>
+                        <option value="Classic Double Room">Classic Double Room (CLD)</option>
+                        <option value="Classic Premium Room">Classic Premium Room (CLP)</option>
+                        <option value="Studio Room">Studio Room (STU)</option>
+                        <option value="Triple Room">Triple Room (TRIP)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Số lượng phòng:</label>
+                    <input type="number" name="room_quantities[]" min="1" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Giá phòng (VNĐ/đêm):</label>
+                    <input type="text" name="room_prices[]" class="price-input" required 
+                           placeholder="Nhập giá phòng" 
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')">
+                </div>
+                <div class="form-group">
+                    <label>Ngày ở:</label>
+                    <input type="text" name="stay_dates[]" class="date-range" required>
+                </div>
+                <div class="form-group">
+                    <label>Số ngày lưu trú:</label>
+                    <input type="text" class="stay_days" readonly>
+                </div>
+                <div class="total-price">Tổng tiền: 0 VNĐ</div>
+            </div>
+        </div>
+
+        <button type="button" id="add-room-btn">Thêm loại phòng</button>
+
+        <div class="form-group">
+            <label>Tổng số ngày lưu trú:</label>
+            <input type="text" id="total_days" name="total_days" readonly>
+        </div>
+
+        <div class="form-group">
+            <label>Tổng tiền phòng:</label>
+            <input type="text" id="grand_total" name="grand_total" readonly>
+        </div>
+
+        <div class="form-group">
+            <label>Dịch vụ bao gồm:</label>
+            <input type="text" name="services_included">
+        </div>
+
+        <div class="form-group">
+            <label>Dịch vụ khác:</label>
+            <input type="text" name="other_services">
+        </div>
+
+        <label>Thanh toán:</label><br>
+        <textarea name="payment_note"></textarea><br>
+
+        <label>Thông tin thanh toán:</label><br>
+        <textarea name="payment_info"></textarea><br><br>
+
+        <input type="hidden" name="stay_dates">
+        <input type="hidden" name="room_info" id="room_info">
+        <input type="hidden" name="room_prices">
+        
+        <input type="submit" value="Tạo PDF">
+        <button type="button" class="preview-btn">Xem trước</button>
+    </form>
+</body>
+</html>
