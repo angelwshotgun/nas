@@ -1,18 +1,14 @@
 {
-    "builds": [
-      {
-        "src": "app.py",
-        "use": "@vercel/python",
-        "config": {
-          "pythonRequirementsFile": "requirements.txt"
-        }
+  "builds": [
+    {
+      "src": "app.py",
+      "use": "@vercel/python",
+      "config": {
+        "pythonRequirementsFile": "requirements.txt"
       }
-    ],
-    "routes": [
-      { "src": "/(.*)", "dest": "app.py" }
-    ],
-    "includeFiles": [
-      "usr/local/bin/**/*"
-    ]
-  }
-  
+    }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "app.py" }
+  ]
+}
