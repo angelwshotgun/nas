@@ -1,11 +1,24 @@
 import os
 from flask import Flask, render_template, request, make_response
 import pdfkit
+from pyngrok import ngrok, conf
+from google.colab import auth
 
-app = Flask(__name__)
+# Xác thực và lấy API key Ngrok từ Colab User Data
+auth.authenticate_user()
+from google.colab import userdata
 
-path_to_wkhtmltopdf = os.path.join(os.getcwd(), 'usr', 'local', 'bin', 'wkhtmltopdf')
+template_dir = os.path.join('/content', 'nas', 'templates')
+app = Flask(__name__, template_folder=template_dir)
+
+# Đường dẫn tới wkhtmltopdf sau khi cài đặt trên Colab
+path_to_wkhtmltopdf = '/usr/bin/wkhtmltopdf'
 config = pdfkit.configuration(wkhtmltopdf=path_to_wkhtmltopdf)
+
+# Cấu hình và kết nối Ngrok
+conf.get_default().auth_token = userdata.get('ngrok_token')  # Đảm bảo bạn đã nhập `ngrok_token` từ User Data
+public_url = ngrok.connect(5000)
+print("My tunnel URL:", public_url)
 
 @app.route('/')
 def index():
@@ -51,4 +64,4 @@ def create_pdf():
     return response
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
