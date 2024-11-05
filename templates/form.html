@@ -167,14 +167,15 @@
                     }
                 }, function(start, end, label) {
                     var daysStayed = end.diff(start, 'days');
-                    var roomGroup = $(element).closest('.room-group');
-                    roomGroup.find('.stay_days').val(daysStayed + ' đêm');
+                    var dateGroup = $(element).closest('.date-group');
+                    dateGroup.find('.stay_days').val(daysStayed + ' đêm');
                     setTimeout(updateStayDates, 100);
                     calculateTotalDays();
                     updateTotalPrice();
                 });
             }
 
+            // Existing helper functions remain the same
             function formatCurrency(number) {
                 return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' })
                     .format(number)
@@ -184,7 +185,8 @@
             function calculateRoomPrice(roomGroup) {
                 var quantity = parseInt($(roomGroup).find('input[name="room_quantities[]"]').val()) || 0;
                 var price = parseInt($(roomGroup).find('input[name="room_prices[]"]').val().replace(/[^0-9]/g, '')) || 0;
-                var stayDaysText = $(roomGroup).find('.stay_days').val();
+                var dateGroup = $(roomGroup).closest('.date-group');
+                var stayDaysText = dateGroup.find('.stay_days').val();
                 var nights = parseInt(stayDaysText) || 0;
                 
                 var total = quantity * price * nights;
@@ -208,7 +210,7 @@
 
             function updateStayDates() {
                 var stayDates = [];
-                $('.room-group').each(function() {
+                $('.date-group').each(function() {
                     var dateValue = $(this).find('.date-range').val();
                     if (dateValue && dateValue.trim() !== '') {
                         stayDates.push(dateValue);
@@ -230,17 +232,46 @@
             function updateRoomInfo() {
                 var roomInfo = [];
                 $('.room-group').each(function() {
+                    var dateGroup = $(this).closest('.date-group');
+                    var dates = dateGroup.find('.date-range').val();
                     var roomType = $(this).find('select[name="room_types[]"]').val();
                     var quantity = $(this).find('input[name="room_quantities[]"]').val();
                     if (roomType && quantity) {
-                        roomInfo.push(`${quantity} x ${roomType}`);
+                        roomInfo.push(`${dates}: ${quantity} x ${roomType}`);
                     }
                 });
                 $('#room_info').val(roomInfo.join('\n'));
             }
 
-            $('#add-room-btn').click(function() {
-                var roomCount = $('.room-group').length + 1;
+            // New function to add date group
+            $('#add-date-btn').click(function() {
+                var dateCount = $('.date-group').length + 1;
+                var newDateHtml = `
+                    <div class="date-group">
+                        <div class="room-header">
+                            <h3>Đợt ${dateCount}</h3>
+                            <button type="button" class="remove-date">Xóa đợt</button>
+                        </div>
+                        <div class="form-group">
+                            <label>Ngày ở:</label>
+                            <input type="text" class="date-range" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Số ngày lưu trú:</label>
+                            <input type="text" class="stay_days" readonly>
+                        </div>
+                        <div class="rooms-in-date"></div>
+                        <button type="button" class="add-room-btn">Thêm phòng</button>
+                    </div>
+                `;
+                $('#dates-container').append(newDateHtml);
+                initDateRangePicker($('#dates-container .date-group:last-child .date-range'));
+            });
+
+            // Modified function to add room within date group
+            $(document).on('click', '.add-room-btn', function() {
+                var dateGroup = $(this).closest('.date-group');
+                var roomCount = dateGroup.find('.room-group').length + 1;
                 var newRoomHtml = `
                     <div class="room-group">
                         <div class="room-header">
@@ -267,22 +298,35 @@
                                    placeholder="Nhập giá phòng" 
                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/\\B(?=(\\d{3})+(?!\\d))/g, '.')">
                         </div>
-                        <div class="form-group">
-                            <label>Ngày ở:</label>
-                            <input type="text" name="stay_dates[]" class="date-range" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Số ngày lưu trú:</label>
-                            <input type="text" class="stay_days" readonly>
-                        </div>
                         <div class="total-price">Tổng tiền: 0 VNĐ</div>
                     </div>
                 `;
-                $('#rooms-container').append(newRoomHtml);
-                initDateRangePicker($('#rooms-container .room-group:last-child .date-range'));
+                dateGroup.find('.rooms-in-date').append(newRoomHtml);
                 updateTotalPrice();
             });
 
+            // Event handlers
+            $(document).on('click', '.remove-date', function() {
+                $(this).closest('.date-group').remove();
+                $('.date-group').each(function(index) {
+                    $(this).find('> .room-header > h3').text('Đợt ' + (index + 1));
+                });
+                updateRoomInfo();
+                updateTotalPrice();
+                calculateTotalDays();
+            });
+
+            $(document).on('click', '.remove-room', function() {
+                var dateGroup = $(this).closest('.date-group');
+                $(this).closest('.room-group').remove();
+                dateGroup.find('.room-group').each(function(index) {
+                    $(this).find('h3').text('Phòng ' + (index + 1));
+                });
+                updateRoomInfo();
+                updateTotalPrice();
+            });
+
+            // Existing event handlers remain the same
             $(document).on('input', 'input[name="room_quantities[]"], input[name="room_prices[]"]', function() {
                 updateRoomInfo();
                 updateTotalPrice();
@@ -290,18 +334,6 @@
 
             $(document).on('change', 'select[name="room_types[]"]', function() {
                 updateRoomInfo();
-            });
-
-            $(document).on('click', '.remove-room', function() {
-                $(this).closest('.room-group').remove();
-                
-                $('.room-group').each(function(index) {
-                    $(this).find('h3').text('Phòng ' + (index + 1));
-                });
-                
-                updateRoomInfo();
-                updateTotalPrice();
-                calculateTotalDays();
             });
 
             $('form').on('submit', function(e) {
@@ -318,7 +350,15 @@
                 $('#preview-form').submit();
             });
 
-            initDateRangePicker($('.room-group:first .date-range'));
+            // Set default values
+            const defaultPaymentNote = "Quý khách vui lòng cọc trước 50% để khách sạn giữ phòng, và thanh toán nốt 100% giá trị booking trước khi nhận phòng 3 ngày.";
+            const defaultPaymentInfo = "TÀI KHOẢN SACOMBANK \n- STK: 020094028699 \n- TÊN TK: HOANG CAM TU \n- CHI NHÁNH PGD HÀNG BẠC";
+
+            $('textarea[name="payment_note"]').val(defaultPaymentNote);
+            $('textarea[name="payment_info"]').val(defaultPaymentInfo);
+
+            // Initialize first date group
+            $('#add-date-btn').click();
         });
     </script>
 </head>
@@ -334,45 +374,9 @@
             <input type="text" name="guests" required>
         </div>
 
-        <div id="rooms-container">
-            <div class="room-group">
-                <div class="room-header">
-                    <h3>Phòng 1</h3>
-                    <button type="button" class="remove-room">Xóa phòng</button>
-                </div>
-                <div class="form-group">
-                    <label>Loại phòng:</label>
-                    <select name="room_types[]" required>
-                        <option value="">Chọn loại phòng</option>
-                        <option value="Classic Double Room">Classic Double Room (CLD)</option>
-                        <option value="Classic Premium Room">Classic Premium Room (CLP)</option>
-                        <option value="Studio Room">Studio Room (STU)</option>
-                        <option value="Triple Room">Triple Room (TRIP)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Số lượng phòng:</label>
-                    <input type="number" name="room_quantities[]" min="1" value="1" required>
-                </div>
-                <div class="form-group">
-                    <label>Giá phòng (VNĐ/đêm):</label>
-                    <input type="text" name="room_prices[]" class="price-input" required 
-                           placeholder="Nhập giá phòng" 
-                           oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')">
-                </div>
-                <div class="form-group">
-                    <label>Ngày ở:</label>
-                    <input type="text" name="stay_dates[]" class="date-range" required>
-                </div>
-                <div class="form-group">
-                    <label>Số ngày lưu trú:</label>
-                    <input type="text" class="stay_days" readonly>
-                </div>
-                <div class="total-price">Tổng tiền: 0 VNĐ</div>
-            </div>
-        </div>
+        <div id="dates-container"></div>
 
-        <button type="button" id="add-room-btn">Thêm loại phòng</button>
+        <button type="button" id="add-date-btn">Thêm đợt</button>
 
         <div class="form-group">
             <label>Tổng số ngày lưu trú:</label>
