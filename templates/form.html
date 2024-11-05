@@ -164,7 +164,8 @@
                 $(element).daterangepicker({
                     locale: {
                         format: 'DD/MM/YYYY'
-                    }
+                    },
+                    separator: ' – '
                 }, function(start, end, label) {
                     var daysStayed = end.diff(start, 'days');
                     var dateGroup = $(element).closest('.date-group');
@@ -210,10 +211,10 @@
 
             function updateStayDates() {
                 var stayDates = [];
-                $('.date-group').each(function() {
+                $('.date-group').each(function(index) {
                     var dateValue = $(this).find('.date-range').val();
                     if (dateValue && dateValue.trim() !== '') {
-                        stayDates.push(dateValue);
+                        stayDates.push(`Call ${index + 1}: ${dateValue}`);
                     }
                 });
                 $('input[name="stay_dates"]').val(stayDates.join('\n'));
@@ -237,7 +238,7 @@
                     var roomType = $(this).find('select[name="room_types[]"]').val();
                     var quantity = $(this).find('input[name="room_quantities[]"]').val();
                     if (roomType && quantity) {
-                        roomInfo.push(`${dates}: ${quantity} x ${roomType}`);
+                        roomInfo.push(`${quantity} x ${roomType}`);
                     }
                 });
                 $('#room_info').val(roomInfo.join('\n'));
