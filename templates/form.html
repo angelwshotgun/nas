@@ -232,16 +232,20 @@
 
             function updateRoomInfo() {
                 var roomInfo = [];
-                $('.room-group').each(function() {
-                    var dateGroup = $(this).closest('.date-group');
+                $('.date-group').each(function(index) {
+                    var dateGroup = $(this);
                     var dates = dateGroup.find('.date-range').val();
-                    var roomType = $(this).find('select[name="room_types[]"]').val();
-                    var quantity = $(this).find('input[name="room_quantities[]"]').val();
-                    if (roomType && quantity) {
-                        roomInfo.push(`${quantity} x ${roomType}\n`);
-                    }
+                    var roomsInDate = [];
+                    
+                    dateGroup.find('.room-group').each(function() {
+                        var roomType = $(this).find('select[name="room_types[]"]').val();
+                        var quantity = $(this).find('input[name="room_quantities[]"]').val();
+                        if (roomType && quantity) {
+                            roomsInDate.push(`${quantity} x ${roomType}`);
+                        }
+                    });
                 });
-                $('#room_info').val(roomInfo.join('\n'));
+                $('#room_info').val(roomInfo.join('\n\n'));
             }
 
             // New function to add date group
