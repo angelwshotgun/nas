@@ -238,7 +238,7 @@
                     var roomType = $(this).find('select[name="room_types[]"]').val();
                     var quantity = $(this).find('input[name="room_quantities[]"]').val();
                     if (roomType && quantity) {
-                        roomInfo.push(`${quantity} x ${roomType}`);
+                        roomInfo.push(`${quantity} x ${roomType}\n`);
                     }
                 });
                 $('#room_info').val(roomInfo.join('\n'));
