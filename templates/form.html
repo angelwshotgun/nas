@@ -232,18 +232,14 @@
 
             function updateRoomInfo() {
                 var roomInfo = [];
-                $('.date-group').each(function(index) {
-                    var dateGroup = $(this);
+                $('.room-group').each(function() {
+                    var dateGroup = $(this).closest('.date-group');
                     var dates = dateGroup.find('.date-range').val();
-                    var roomsInDate = [];
-                    
-                    dateGroup.find('.room-group').each(function() {
-                        var roomType = $(this).find('select[name="room_types[]"]').val();
-                        var quantity = $(this).find('input[name="room_quantities[]"]').val();
-                        if (roomType && quantity) {
-                            roomsInDate.push(`${quantity} x ${roomType}`);
-                        }
-                    });
+                    var roomType = $(this).find('select[name="room_types[]"]').val();
+                    var quantity = $(this).find('input[name="room_quantities[]"]').val();
+                    if (roomType && quantity) {
+                        roomInfo.push(`${quantity} x ${roomType}`);
+                    }
                 });
                 $('#room_info').val(roomInfo.join('\n'));
             }
